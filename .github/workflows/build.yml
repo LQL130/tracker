@@ -17,6 +17,13 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Ensure Bundle Identifier in Info.plist
+        run: |
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleIdentifier" AntTracker/Info.plist 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.anttracker.app" AntTracker/Info.plist
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleIdentifier" AntTrackerWidget/Info.plist 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.anttracker.app.widget" AntTrackerWidget/Info.plist
+
       - name: Generate Xcode Project
         run: xcodegen generate
 
