@@ -1,0 +1,53 @@
+name: AntTracker
+options:
+  bundleIdPrefix: com.anttracker
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    MARKETING_VERSION: "1.1.0"
+    CURRENT_PROJECT_VERSION: "2"
+
+targets:
+  AntTracker:
+    type: application
+    platform: iOS
+    sources:
+      - path: AntTracker
+        excludes:
+          - "Resources/**"
+          - "Info.plist"
+          - "*.entitlements"
+      - path: Shared
+      - path: AntTracker/Resources
+        type: folder
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.anttracker.app
+        INFOPLIST_FILE: AntTracker/Info.plist
+        CODE_SIGN_ENTITLEMENTS: AntTracker/AntTracker.entitlements
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    dependencies:
+      - target: AntTrackerWidget
+        embed: true
+
+  AntTrackerWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: AntTrackerWidget
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.anttracker.app.widget
+        INFOPLIST_FILE: AntTrackerWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: AntTrackerWidget/AntTrackerWidget.entitlements
+        TARGETED_DEVICE_FAMILY: "1"
