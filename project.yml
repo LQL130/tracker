@@ -51,24 +51,3 @@ targets:
         INFOPLIST_FILE: AntTrackerWidget/Info.plist
         CODE_SIGN_ENTITLEMENTS: AntTrackerWidget/AntTrackerWidget.entitlements
         TARGETED_DEVICE_FAMILY: "1"
-targets:
-  AntTracker:
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.anttracker.app
-    info:
-      path: AntTracker/Info.plist
-      properties:
-        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
-        CFBundleName: AntTracker
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
-        CFBundlePackageType: APPL
-  AntTrackerWidget:
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.anttracker.app.widget
-    info:
-      path: AntTrackerWidget/Info.plist
-      properties:
-        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
