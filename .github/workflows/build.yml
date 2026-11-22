@@ -20,30 +20,34 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
-      - name: Verify Bundle Identifier
+      - name: Build App (Unsigned)
         run: |
-          echo "=== Kiểm tra PRODUCT_BUNDLE_IDENTIFIER trong project.pbxproj ==="
-          grep -n "PRODUCT_BUNDLE_IDENTIFIER" AntTracker.xcodeproj/project.pbxproj || { echo "❌ Lỗi: Chưa tìm thấy PRODUCT_BUNDLE_IDENTIFIER trong project.yml!"; exit 1; }
-          echo "=== Kiểm tra CFBundleIdentifier trong Info.plist ==="
-          grep -A 1 "CFBundleIdentifier" AntTracker/Info.plist AntTrackerWidget/Info.plist
-
-      - name: Build & Archive App (Unsigned)
-        run: |
-          xcodebuild archive \
+          xcodebuild build \
             -project AntTracker.xcodeproj \
             -scheme AntTracker \
             -configuration Release \
+            -sdk iphoneos \
             -destination "generic/platform=iOS" \
-            -archivePath build/AntTracker.xcarchive \
+            -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
 
+      - name: Check built app
+        run: |
+          APP="build/DerivedData/Build/Products/Release-iphoneos/AntTracker.app"
+          ls -la "$APP"
+          echo "=== Bundle ID của app ==="
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist"
+          echo "=== Widget đã được nhúng? ==="
+          ls "$APP/PlugIns" || echo "Không thấy PlugIns"
+
       - name: Package IPA for Sideloadly
         run: |
+          rm -rf build/Payload
           mkdir -p build/Payload
-          cp -r build/AntTracker.xcarchive/Products/Applications/AntTracker.app build/Payload/
-          cd build && zip -r AntTracker.ipa Payload
+          cp -R build/DerivedData/Build/Products/Release-iphoneos/AntTracker.app build/Payload/
+          cd build && zip -r -y AntTracker.ipa Payload
 
       - name: Upload AntTracker.ipa Artifact
         uses: actions/upload-artifact@v4
