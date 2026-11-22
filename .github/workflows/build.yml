@@ -27,6 +27,39 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
+      - name: Set Bundle Identifier in Xcode Project
+        run: |
+          python3 - << 'EOF'
+          import re
+
+          pbx_path = "AntTracker.xcodeproj/project.pbxproj"
+          with open(pbx_path, "r") as f:
+              text = f.read()
+
+          def set_bundle_id(pbx, target_name, bundle_id):
+              m = re.search(rf'([A-Za-z0-9_]+)\s*/\*\s*Build configuration list for PBXNativeTarget "{re.escape(target_name)}"\s*\*/\s*=\s*\{{[^}}]*buildConfigurations\s*=\s*\(([^)]+)\)', pbx)
+              if not m:
+                  raise RuntimeError(f"Target config list not found: {target_name}")
+              cfg_ids = re.findall(r'^\s*([A-Za-z0-9_]+)', m.group(2), re.M)
+              for cid in cfg_ids:
+                  block_re = re.compile(rf'({re.escape(cid)}\s*(?:/\*[^*]*\*/)?\s*=\s*\{{[\s\S]*?buildSettings\s*=\s*\{{)([\s\S]*?)(\n\s*\}};)')
+                  def repl(match):
+                      header, body, footer = match.group(1), match.group(2), match.group(3)
+                      if re.search(r'PRODUCT_BUNDLE_IDENTIFIER\s*=', body):
+                          body = re.sub(r'(PRODUCT_BUNDLE_IDENTIFIER\s*=\s*)[^;]+;', rf'\g<1>{bundle_id};', body)
+                      else:
+                          body = f"\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = {bundle_id};" + body
+                      return header + body + footer
+                  pbx = block_re.sub(repl, pbx, count=1)
+              return pbx
+
+          text = set_bundle_id(text, "AntTracker", "com.anttracker.app")
+          text = set_bundle_id(text, "AntTrackerWidget", "com.anttracker.app.widget")
+
+          with open(pbx_path, "w") as f:
+              f.write(text)
+          EOF
+
       - name: Build & Archive App (Unsigned)
         run: |
           xcodebuild archive \
