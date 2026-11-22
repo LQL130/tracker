@@ -1,0 +1,45 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Unsigned IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build & Archive App (Unsigned)
+        run: |
+          xcodebuild archive \
+            -project AntTracker.xcodeproj \
+            -scheme AntTracker \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath build/AntTracker.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Package IPA for Sideloadly
+        run: |
+          mkdir -p build/Payload
+          cp -r build/AntTracker.xcarchive/Products/Applications/AntTracker.app build/Payload/
+          cd build && zip -r AntTracker.ipa Payload
+
+      - name: Upload AntTracker.ipa Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AntTracker-IPA
+          path: build/AntTracker.ipa
